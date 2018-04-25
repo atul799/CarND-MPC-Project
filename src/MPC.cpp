@@ -37,7 +37,7 @@ class FG_eval {
 		  fg[0] += cte_w*CppAD::pow(vars[cte_start + t]-ref_cte, 2);
 		  fg[0] += epsi_w*CppAD::pow(vars[epsi_start + t]-ref_epsi, 2);
 		  fg[0] += v_w*CppAD::pow(vars[v_start + t] - ref_v, 2);
-
+		  //penalize velocity for high cte
 		  fg[0] += cte_v_w*CppAD::pow(vars[cte_start + t]*vars[v_start + t], 2);
 	  }
 
@@ -45,6 +45,7 @@ class FG_eval {
 	  for (size_t t = 0; t < N - 1; t++) {
 		  fg[0] += delta_w*CppAD::pow(vars[delta_start + t], 2);
 		  fg[0] += a_w*CppAD::pow(vars[a_start + t], 2);
+		  fg[0] += delta_v_w*CppAD::pow(vars[delta_start + t] * (vars[v_start + t]), 2);
 		  //fg[0] += delta_v_w*CppAD::pow(vars[delta_start + t] * (vars[v_start + t]-ref_v), 2); //
 	  }
 
