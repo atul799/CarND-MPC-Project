@@ -103,7 +103,7 @@ const double a_s_w = 2.0;
 //const double cte_v_w=0.5;
 const double cte_v_w=0.2;
 
-const double delta_v_w=10.0; //penalize accceleration if vel is high
+const double delta_v_w=10.0; //penalize acceleration if vel is high
 
 const int degree=3; //degree of polynomial to consider
 //const int degree=4; //vehicle slower at turns
