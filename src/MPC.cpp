@@ -37,12 +37,15 @@ class FG_eval {
 		  fg[0] += cte_w*CppAD::pow(vars[cte_start + t]-ref_cte, 2);
 		  fg[0] += epsi_w*CppAD::pow(vars[epsi_start + t]-ref_epsi, 2);
 		  fg[0] += v_w*CppAD::pow(vars[v_start + t] - ref_v, 2);
+
+		  fg[0] += cte_v_w*CppAD::pow(vars[cte_start + t]*vars[v_start + t], 2);
 	  }
 
 	  // Minimize the use of actuators.
 	  for (size_t t = 0; t < N - 1; t++) {
 		  fg[0] += delta_w*CppAD::pow(vars[delta_start + t], 2);
 		  fg[0] += a_w*CppAD::pow(vars[a_start + t], 2);
+		  //fg[0] += delta_v_w*CppAD::pow(vars[delta_start + t] * (vars[v_start + t]-ref_v), 2); //
 	  }
 
 	  // Minimize the value gap between sequential actuations.
@@ -97,15 +100,18 @@ class FG_eval {
 		  AD<double> delta0 = vars[delta_start + t - 1];
 		  AD<double> a0 = vars[a_start + t - 1];
 
+
+
+
+
+
 		  //find desired y position and psi
-		  AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0*x0 +coeffs[3] * x0*x0*x0  ;
-		  //f' -->slope
-		  AD<double> psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0+3.0*coeffs[3]*x0*x0);
-
-
-
-		  /*AD<double> f0 =0.0;
+		  AD<double> f0 =0.0;
 		  AD<double> psides0=0.0;
+
+		  //f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0*x0 +coeffs[3] * x0*x0*x0  ;
+		  //f' -->slope
+		  //psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0+3.0*coeffs[3]*x0*x0);
 
 
 		  switch(degree) {
@@ -113,33 +119,46 @@ class FG_eval {
 		  //degree 1, line
 		  //f0 represents desired y position py(from polynomila eqn using x0)
 		  //psides0 represents desired psi, arctan of slope of poly
-		  case 1: {
-			  AD<double> f0 = coeffs[0] + coeffs[1] * x0;
+		  case 1:
+			  f0 = coeffs[0] + coeffs[1] * x0;
 			  //f' -->slope
-			  AD<double> psides0 = CppAD::atan(coeffs[1]);
+			  psides0 = CppAD::atan(coeffs[1]);
 			  break;
-		  }
+
 		  //degree 2 , quadratic
-		  case 2: {
-			  AD<double> f0 = coeffs[0] + coeffs[1] * x0+coeffs[2] * x0*x0;
+		  case 2:
+			  f0 = coeffs[0] + coeffs[1] * x0+coeffs[2] * x0*x0;
 			  //f' -->slope
-			  AD<double> psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0);
+			  psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0);
 			  break;
-		  }
+
 		  //degree 3
-		  case 3: {
-			  AD<double> f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0*x0 +coeffs[3] * x0*x0*x0  ;
+		  case 3:
+			  f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0*x0 +coeffs[3] * x0*x0*x0  ;
 			  //f' -->slope
-			  AD<double> psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0+3.0*coeffs[3]*x0*x0);
+			  psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0+3.0*coeffs[3]*x0*x0);
 			  //cout <<"deg 3"<<endl;
+
 			  break;
-		  }
-		  default : {
+		  //degree 4
+		  case 4:
+			  f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0*x0 +coeffs[3] * x0*x0*x0 + coeffs[4] * x0*x0*x0*x0 ;
+			  //f' -->slope
+			  psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0+3.0*coeffs[3]*x0*x0 + 4.0*coeffs[4]*x0*x0*x0);
+
+
+			  break;
+
+
+
+		  default :
 			  cerr << "Error: Polynomial degree has to be betwen 1-3: " << degree<<endl;
 			  exit(EXIT_FAILURE);
+
+
 		  }
 
-		  } */
+
 
 		  // The idea here is to constraint this value to be 0.
 		  // so model constraints are essentially, state param next-current=0
