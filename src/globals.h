@@ -93,13 +93,17 @@ const double a_w = 1.0;
 //const double delta_s_w = 5.0;
 const double delta_s_w = 40.0;
 
-//const double a_s_w = 10.0; // smooth acceleration change between subsequent steps
+const double a_s_w = 10.0; // smooth acceleration change between subsequent steps
 //const double a_s_w = 15.0; // smooth acceleration change between subsequent steps
 //const double a_s_w = 0.01;
-const double a_s_w = 2.0;
+//const double a_s_w = 2.0;
 
-const double cte_v_w=0.5; //penalize velocity for high cte error
-const double delta_v_w=10.0; //velocity vs accceleration
+//const double cte_v_w=2.0; //penalize velocity for high cte error
+//const double cte_v_w=1.0;
+//const double cte_v_w=0.5;
+const double cte_v_w=0.2;
+
+const double delta_v_w=10.0; //penalize accceleration if vel is near ref
 
 const int degree=3; //degree of polynomial to consider
 //const int degree=4; //vehicle slower at turns
