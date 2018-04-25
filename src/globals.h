@@ -13,7 +13,7 @@
  * GLOBALS
  *************/
 const size_t N=10; //number of states to generate
-const double dt=0.1; //time between state change evaluation
+const double dt=0.1; //time between state change evaluation /not esperimented with as this seems reasonable
 
 const double dt_latency=0.1;//simulator latency
 //N/dt -->100 evaluations of state will be done by MPC per sim call
