@@ -138,25 +138,16 @@ class FG_eval {
 			  f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0*x0 +coeffs[3] * x0*x0*x0  ;
 			  //f' -->slope
 			  psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0+3.0*coeffs[3]*x0*x0);
-			  //cout <<"deg 3"<<endl;
-
 			  break;
 		  //degree 4
 		  case 4:
 			  f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0*x0 +coeffs[3] * x0*x0*x0 + coeffs[4] * x0*x0*x0*x0 ;
 			  //f' -->slope
 			  psides0 = CppAD::atan(coeffs[1]+2.0*coeffs[2]*x0+3.0*coeffs[3]*x0*x0 + 4.0*coeffs[4]*x0*x0*x0);
-
-
 			  break;
-
-
-
 		  default :
 			  cerr << "Error: Polynomial degree has to be betwen 1-3: " << degree<<endl;
 			  exit(EXIT_FAILURE);
-
-
 		  }
 
 
@@ -343,6 +334,16 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   	  *Purpose
   	  *The function ipopt::solve solves nonlinear programming problems of the form
 
+	solution has fgollowing fields:
+		status :It is the final Ipopt status for the optimizer
+		x :It is the final value for the optimizer
+		zl:It is the final Lagrange multipliers for the lower bounds on x
+		zu:It is the final Lagrange multipliers for the upper bounds on x
+		g:It is the final value for the constraint function g(x)
+		lambda:It is the final value for the Lagrange multipliers corresponding to the constraint function
+		obj_value:It is the final value of the objective function f(x)
+
+
 	 */
 
 
@@ -357,12 +358,13 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
 	// Check some of the solution values (dbg)
 	ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
-	if(ok) {
-		// Cost
-		auto cost = solution.obj_value;
-		std::cout << "Success: Cost: " << cost << std::endl;
-	} else {
+	if(!ok) {
 		std::cout << " Ipopt solver failed!!"<<std::endl;
+	}
+	else {
+		// Cost
+				auto cost = solution.obj_value;
+				std::cout << "Success: Cost: " << cost << std::endl;
 	}
 
 

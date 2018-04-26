@@ -184,6 +184,7 @@ int main() {
 					// The steering angle is negative the given value as we have
 					// as recall that during transformation we rotated all waypoints by -psi
 
+					//this won't work
 					//double current_px = 0.0 + v * cos(psi) * dt_latency;
 					//double current_py = 0.0 + v * sin(psi) * dt_latency;
 					double current_px = 0.0 + v * dt_latency;
@@ -264,7 +265,9 @@ int main() {
 
 
 					auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-					std::cout << msg << std::endl;
+					//debug
+					//std::cout << msg << std::endl;
+
 					// Latency
 					// The purpose is to mimic real driving conditions where
 					// the car does actuate the commands instantly.
@@ -274,7 +277,11 @@ int main() {
 					//
 					// NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
 					// SUBMITTING.
-					this_thread::sleep_for(chrono::milliseconds(100));
+					//this_thread::sleep_for(chrono::milliseconds(100));
+
+					//cout <<"Lat: "<<latency_t<<endl;
+					this_thread::sleep_for(chrono::milliseconds(latency_t));
+
 					ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 				}
 			} else {
