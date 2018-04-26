@@ -9,6 +9,7 @@
 #include "MPC.h"
 #include "json.hpp"
 #include "globals.h"
+#include <fstream>
 
 
 // for convenience
@@ -77,10 +78,22 @@ Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
 int main() {
 	uWS::Hub h;
 
+	  //////////////////////////////////
+	  // open a file handle to write x and y,heading,speed,steering and throttle
+	  string out_file_name="../outputs/trackdata_fromMPC.csv";
+	  ofstream out_file (out_file_name, ofstream::out);
+	  if (!out_file.is_open())  {
+		  cerr << "Cannot open output file: " << out_file_name << endl;
+		  exit(EXIT_FAILURE);
+	  }
+
+	  out_file << "px" <<","<< "py" <<","<< "psi" <<","<<"v" <<","<< "steer_value" <<"," <<"throttle_value"<<endl;
+
+
 	// MPC is initialized here!
 	MPC mpc;
 
-	h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+	h.onMessage([&mpc,&out_file](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
 			uWS::OpCode opCode) {
 		// "42" at the start of the message means there's a websocket message event.
 		// The 4 signifies a websocket message
@@ -107,6 +120,10 @@ int main() {
 					double v = j[1]["speed"];
 					double steer_value = j[1]["steering_angle"];
 					double throttle_value = j[1]["throttle"];
+
+
+					out_file << px <<","<< py <<","<< psi <<","<<v <<","<< steer_value <<"," <<throttle_value<<endl;
+
 
 					/********************************************
 					 *
@@ -324,4 +341,7 @@ int main() {
 		return -1;
 	}
 	h.run();
+
+	//close the data capture file
+	out_file.close();
 }

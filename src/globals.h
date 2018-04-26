@@ -19,7 +19,8 @@ const double dt=0.1; //time between state change evaluation
 //const double dt=0.15;
 
 const double dt_latency=0.1;//simulator latency
-//const double dt_latency=0.2;//at 200 ms vehciles swirls constantly, although is within lane marks
+//const double dt_latency=0.2;//at 200 ms vehciles swirls constantly, although is within lane marks,
+//if latency increases, increase prediction horizon by increasing dt
 const int latency_t=(int) (dt_latency*1000);
 
 //N=10,dt=0.1 works fine

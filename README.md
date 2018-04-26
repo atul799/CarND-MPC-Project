@@ -6,7 +6,7 @@
 ---
 The goal of this project are the following:
 
-* Build a Model Predictive Control (MPC) model to control vehicle actuators.
+* Build a Model Predictive Control (MPC) controller to control vehicle actuators.
 * Tune cost function to enable max reference speed upto 200 MPH.
 * Consider latency of 100ms between command and response.
 * Show Vehicle trajectory and Waypoints on the simulator
@@ -17,7 +17,7 @@ The goal of this project are the following:
 
 # Overview of the Project
 ---
-In this project MPC is used to control vehicle actuator to enable a vehicle drive safely in udacity simulator. MPC presents and alternative method to PID control to control vehicle. Control system has an inherent latency between when control commands (for actuators) are issued and when they are actually applied. This latency is difficult to model in PID controller. Latency can be easily accomodated in MPC.
+In this project and MPC controller is used to control vehicle actuator to enable a vehicle drive safely in udacity simulator. MPC presents an alternative method to PID control to control vehicle. Control system has an inherent latency between control commands (for actuators) issuance to actually applied. This latency is difficult to model in PID controller. Latency can be easily accomodated in MPC.
 
 According to [Wikipedia](https://en.wikipedia.org/wiki/Model_predictive_control) (with slight edits):
 
@@ -28,7 +28,7 @@ According to [Wikipedia](https://en.wikipedia.org/wiki/Model_predictive_control)
 
 The MPC consists of deriving states for vehicle motion and actuators, applying a cost function and then using a non-linear optimizer to get values for state parameters for a defined time horizon. Only the first of the predicted actuators from state is applied to vehicle and then the process is repeated. 
 
-Here is how MPC works:
+Section below describes how MPC works:
 
 ## Steps in MPC
 
@@ -59,11 +59,11 @@ Bicycle model is used to model vehicle motion. Here is the formula for next stat
 
 ### Prediction Horizon(Set N and dt)
 ---
-Prediction horizon(T) to consider for MPC is defined using a integer number (N) and time delta(dt). The prediction horizon is the duration over which future predictions are made.It is the product of two variables, N and dt.N is the number of timesteps in the horizon. dt is how much time elapses between actuation's. For example, if N were 20 and dt were 0.5, then T would be 10 seconds. N, dt, and T are hyperparameters.In the case of driving a car, T should be a few seconds, at most. Beyond that horizon, the environment will change enough that it won't make sense to predict any further into the future. N controls computation cost and dt controls accuracy of model. 
+Prediction horizon(T) to consider for MPC is defined using a integer number (N) and time delta(dt). The prediction horizon is the duration over which future predictions are made.It is the product of two variables, N and dt.N is the number of timesteps in the horizon. dt is how much time elapses between actuation's. For example, if N were 20 and dt were 0.5, then T would be 10 seconds. N and dt are hyperparameters.In the case of driving a car, T should be a few seconds, at most. Beyond that horizon, the environment will change enough that it won't make sense to predict any further into the future. N controls computation cost and dt controls accuracy of model. 
 
 ### Motion and Actuation Parameters
 ---
-Vehicle parameters x and y positions,heading direction,velocity are part of state vector. Control inputs are actuators, steering angle and Throttle. Throttle represents both acceleration (positive) and braking(negative).
+Vehicle parameters x and y positions,heading direction,velocity are part of state vector. Control inputs are actuators which are steering angle and throttle. Throttle represents both acceleration (positive) and braking(negative).
  
 <img src="./outputs/building_a_kinematic_model1.png" width="400" height="200" /> 
 
@@ -71,9 +71,9 @@ Vehicle parameters x and y positions,heading direction,velocity are part of stat
 
 ### Polynomial Fitting and MPC Preprocessing
 ---
-The waypoints to estimate the road curves is given with maps map's coordinate system,which is different than the car's coordinate system.Transforming these waypoints  makes it easier to both display them and to calculate the CTE and Epsi values for the MPC.The waypoints are subtracted from cars actual position and transformed using Homogenous transform to align with trajectory (x-axis is cars heading direction).
+The waypoints to estimate the road curves is given with map's coordinate system,which is different than the car's coordinate system.Transforming these waypoints  makes it easier to both display them and to calculate the CTE and Epsi values for the MPC.The waypoints are subtracted from vehicle's actual position and transformed using Homogenous transform to align with trajectory (x-axis is cars heading direction).
 
-The reference trajectory is derived using a polynomial function function. 3rd order  is suggested as good order for represent most vehicle paths(road) as polynomial.
+The reference trajectory is derived using a polynomial function. 3rd order  is suggested as good order to represent most vehicle paths(road) as polynomial.
 
 Polynomial fitting is implemented with solution adapted from [Polyfit](https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716)
 
@@ -89,16 +89,16 @@ The vehicle has to follow a trajectory that means Cross track error and heading 
 
 
 
-We can express theses errors as difference between desired and actual position and heading:
+We can express these errors as difference between desired and actual position and heading:
 
-*	Cross track error(CTE) is the difference between desired position and actual position. It can be obtained from  difference of actual position(y(t) a fitted polynomial(desired/reference path)f(x(t) and adding the change in error caused by the vehicle's movement.
+*	Cross track error(CTE) is the difference between desired position and actual position. It can be obtained from  difference of actual position(y(t) and fitted polynomial(desired/reference path) f(x(t) and adding the change in error caused by the vehicle's movement.
  
 		cte(t+1)= y(t) - f(x(t))+v(t)*sin(epsi(t))*dt
 *	Orientation error(eψ) is the desired orientation subtracted from the current orientation
 
 	eψ(t)=ψ(t)−ψdes(t)
 
-We already know ψ(t), because it’s part of our state. We don’t yet know ψdes(t)(desired psi) - all we have so far is a polynomial to follow. ψdes(t)can be calculated as the tangential angle of the polynomial f evaluated at x(t), arctan(f′(x(t)). f′ is the derivative of the polynomial.
+We already know ψ(t), because it’s part of our state. We don’t yet know ψdes(t)(desired psi) - all we have so far is a polynomial to follow. ψdes(t) can be calculated as the tangential angle of the polynomial f evaluated at x(t), arctan(f′(x(t)). f′ is the derivative of the polynomial.
 
 	eψ(t+1)=eψ(t)+v(t)/Lf∗δ(t)∗dt
 
@@ -150,10 +150,12 @@ Ideally, both of these errors should be 0 - there would be no difference from th
 In addition to cte and heading error, velocity can be specified as cost. we want to go as fast as we can. Difference between current velocity and desired velocity (chosen as 100 MPH in this project) is added to cost.
 
 There are other consideration while driving a vehicle such as:
+
 * Minimize use of actuators (steering and throttle)
-* For smooth driving, steering and throttle changes should be drastic between successive steps
+* For smooth driving, steering and throttle changes shouldn't be drastic between successive time steps
 * Slow down vehicle when cte is high
 * Don't accelerate when velocity is high (close to desired velocity)
+
 
 <img src="./outputs/cost_smooth_lane_change.png" width="450" height="300" />
 
@@ -203,32 +205,36 @@ The simulator has a latency of 100ms between actuator command and application.To
 ---
 The C++ code used in this implementation can be found in [src](./src) directory.
 
-1. file globals.h contains definition of all the constants used in this project such as Lf,number of state and actuator variables,reference velocity,cte and steering error,span of different state variables in the variables vector,weights for cost function and degree of polynomial.
+1. File globals.h contains definition of all the constants used in this project such as Lf,number of state and actuator variables,reference velocity,cte and steering error,span of different state variables in the variables vector,weights for cost function and degree of polynomial.
 2. The file MPC.h is header file for MPC class.
-3. The file MPC.cpp defines functions prototyped in MPC.h and also implements  FG_eval class that is passed as fg_eval to Ipopt optimizer.
+3. The file MPC.cpp defines function Solve prototyped in MPC.h and also implements  FG_eval class that is passed as fg_eval to Ipopt optimizer.
 	1. Solve function of class MPC, sets up optmization variables vector, upper and lower bound on this vector and upper and lower bounds on model constraints. Optimizer is then called and first value of actuators and predicted x and y positions are returned to main function.
 	2. FG_eval class is also implemented in MPC.cpp. This class is passed to optimizer with () operator overloaded. In this Class, cost function and model constraints are setup. 
 4. The file main.cpp file has main function. The interaction with simulator happens in the main function.polyfit and polyeval functions are defined in this file which are used for polynomial fitting and coefficient calculation.
-In the main function, for each call of simulator (at a time step),current values of position,heading direction,speed,steering angle and throttle is captured. Waypoints are mapped to vehicle's co-ordinate system and homogenous transform is applied to align waypoints and cars position.Transformed waypoints are then used to generate polynomial coefficients. Stae vector is then built applying estimation to compensate for latency. Next Solve function from MPC class is called which runs optmizer and returns first actuator values. The steering value is converted to degrees and passed to simulator along with throttle value. If δ is positive we rotate counter-clockwise, or turn left. In the simulator however, a positive value implies a right turn and a negative value implies a left turn, so steering value is negated before passing to simulator.
-The MPC::Solve function also returns predicted trajectory from optimizer, using way points (transformed to vehicle co-ordinate system) and predicted trajectory are passed to the simulator as well to draw reference and predicted trajectory in simulation, which helps in visualization and tuning of weights for cost function.
+In the main function, for each call of simulator (at a time step),current values of position,heading direction,speed,steering angle and throttle is captured. Waypoints are mapped to vehicle's co-ordinate system and homogenous transform is applied to align waypoints and vehicle's position.Transformed waypoints are then used to generate polynomial coefficients. State vector is then built applying estimation to compensate for latency. Next Solve function from MPC class is called which runs optimizer and returns first actuator value (steering angle and throttle). The steering value is converted to degrees and passed to simulator along with throttle value. 
+
+NOTE: If δ is positive we rotate vehicle counter-clockwise, or turn left. In the simulator however, a positive value implies a right turn and a negative value implies a left turn, so steering value is negated before passing to simulator.
+
+The MPC::Solve function also returns predicted trajectory from optimizer, using coefficient calculated from polyfit, a reference trajectory and predicted trajectory are passed to the simulator to draw reference and predicted trajectory in simulator, which helps in visualization and tuning of weights for cost function.
 
 <img src="./outputs/onthebridge.png" width="600" height="400" />
 
 ## Hyperparameter Tuning
 ---
 The tuned hyperparameters in this project are:
-* N and : started with N=5 and dt=0.1 but predicted trajectory looked very short and high cte was observed. Increased N to 15 cte didn't improve, probably optimizer ran out of time, increasing optmizer parameter Numeric max_cpu_time to 1 helped but not by much. Finally settled as N=10 and dt=0.1
-* ref_v: This is desired (max) velocity, started with 40 and when cte were manageable increased to 100 and 200. Max speed achieved is **~95MPH** , it is set at finally set it at 100 in submitted code.
+
+* N and dt: First set N=5 and dt=0.1 but predicted trajectory looked very short and high cte was observed. Increased N to 15 cte didn't improve, probably optimizer ran out of time, increasing optmizer parameter Numeric max_cpu_time to 1 helped but not by much. Finally, settled at N=10 and dt=0.1
+* ref_v: This is desired (max) velocity, started with 40 and when cte were manageable increased to 100 and then to 200. Max speed achieved is **~95MPH** , it is set at 100 in submitted code.
 * weights for cost function: the weights for cost functions are manually tuned. There is orders of magnitude difference between weights showing importance placed on each cost function component.
 	* cte_w	   : weight for cte minimization(highest weight) set at 2000
 	* epsi_w   : weight for heading error minimization (set at 1000)
-	* v_w      : weight for getting speed close to ref_v (set at 0.5)
+	* v\_w      : weight for getting speed close to ref_v (set at 0.5)
 	* delta_w  : weight to minimize steering angle change (set at 1.0)
 	* a_w      : weight to minimize throttle change (set at 0.5)
-	* delta_s_w: weight for smooth angle change between subsequent steps (set at 40)
-	* a_s_w    : weight for smooth throttle between subsequent steps (set at 2)
-	* cte_v_w  : weight for reducing velocity when high cte (cte*speed) (set at 0.1, lowest cost)
-	* delta_v_w: weight for reducing acceleration when speed is high (throttle*speed) (set at 10)	
+	* delta\_s\_w: weight for smooth angle change between subsequent steps (set at 40)
+	* a\_s\_w    : weight for smooth throttle between subsequent steps (set at 2)
+	* cte\_v\_w  : weight for reducing velocity when high cte (cte*speed) (set at 0.1, lowest cost)
+	* delta_v\_w: weight for reducing acceleration when speed is high (throttle*speed) (set at 10)	
 
 
 # Result
@@ -240,6 +246,16 @@ The implemented MPC is able to achieve ~95MPH max speed which is quite a boost o
 Here is vehicle run around simulator track for 3 laps:
 
 <img src="./outputs/MPC_3laps.gif" width="600" height="400" /> 
+
+
+# Source Code, Compilation and Run
+--- 
+To compile and run the MPC project code, following steps are required:
+
+1. Make a build directory: `mkdir build && cd build`
+2. Compile: `cmake .. && make`
+3. Run it: `./mpc`.
+4. open unity Simulator, choose MPC  and run
 
 
 # Reference
@@ -270,83 +286,35 @@ Here is vehicle run around simulator track for 3 laps:
     Some function signatures have changed in v0.14.x. See [this PR](https://github.com/udacity/CarND-MPC-Project/pull/3) for more details.
 
 * **Ipopt and CppAD:** Please refer to [this document](https://github.com/udacity/CarND-MPC-Project/blob/master/install_Ipopt_CppAD.md) for installation instructions.
-* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). This is already part of the repo so you shouldn't have to worry about it.
-* Simulator. You can download these from the [releases tab](https://github.com/udacity/self-driving-car-sim/releases).
+* [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page). 
+* [Simulator](https://github.com/udacity/self-driving-car-sim/releases).
 * Not a dependency but read the [DATA.md](./DATA.md) for a description of the data sent back from the simulator.
 
 
-## Basic Build Instructions
+## Other Tips
 
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./mpc`.
+1. The `lake_track_waypoints.csv` file has the waypoints of the lake track. I have captured position from simulator with  MPC controller in [file](./lake_track_waypoints_MPC_points.csv)
+The shape of waypoints and points from MPC match when plottes as scatter plot in excel.
 
-## Tips
+* Waypoint and MPC points (px vs py),velocity and steering plots
 
-1. It's recommended to test the MPC on basic examples to see if your implementation behaves as desired. One possible example
-is the vehicle starting offset of a straight line (reference). If the MPC implementation is correct, after some number of timesteps
-(not too many) it should find and track the reference line.
-2. The `lake_track_waypoints.csv` file has the waypoints of the lake track. You could use this to fit polynomials and points and see of how well your model tracks curve. NOTE: This file might be not completely in sync with the simulator so your solution should NOT depend on it.
-3. For visualization this C++ [matplotlib wrapper](https://github.com/lava/matplotlib-cpp) could be helpful.)
-4.  Tips for setting up your environment are available [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
-5. **VM Latency:** Some students have reported differences in behavior using VM's ostensibly a result of latency.  Please let us know if issues arise as a result of a VM environment.
+![](../outputs/waypoint_vs_MPC_scatter.png)
 
-## Editor Settings
+* Waypoints and MPC points (px vs py) overlaid in scatter plot
 
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
+![](../outputs/waypoint_vs_MPC_scatter1.png)
 
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
+ 
+2. For visualization this C++ [matplotlib wrapper](https://github.com/lava/matplotlib-cpp) could be helpful.)
+
+
 
 ## Code Style
 
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
+Plan to follow [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
 
 ## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
-
-More information is only accessible by people who are already enrolled in Term 2
-of CarND. If you are enrolled, see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/b1ff3be0-c904-438e-aad3-2b5379f0e0c3/concepts/1a2255a0-e23c-44cf-8d41-39b8a3c8264a)
+see [the project page](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/f1820894-8322-4bb3-81aa-b26b3c6dcbaf/lessons/b1ff3be0-c904-438e-aad3-2b5379f0e0c3/concepts/1a2255a0-e23c-44cf-8d41-39b8a3c8264a)
 for instructions and the project rubric.
 
-## Hints!
 
-* You don't have to follow this directory structure, but if you do, your work
-  will span all of the .cpp files here. Keep an eye out for TODOs.
-
-## Call for IDE Profiles Pull Requests
-
-Help your fellow students!
-
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to we ensure
-that students don't feel pressured to use one IDE or another.
-
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
-
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
-
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
-
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
-
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
-
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
