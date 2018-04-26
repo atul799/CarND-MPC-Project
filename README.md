@@ -298,11 +298,11 @@ The shape of waypoints and points from MPC match when plottes as scatter plot in
 
 * Waypoint and MPC points (px vs py),velocity and steering plots
 
-![](../outputs/waypoint_vs_MPC_scatter.png)
+![](./outputs/waypoint_vs_MPC_scatter.png)
 
 * Waypoints and MPC points (px vs py) overlaid in scatter plot
 
-![](../outputs/waypoint_vs_MPC_scatter1.png)
+![](./outputs/waypoint_vs_MPC_scatter1.png)
 
  
 2. For visualization this C++ [matplotlib wrapper](https://github.com/lava/matplotlib-cpp) could be helpful.)
